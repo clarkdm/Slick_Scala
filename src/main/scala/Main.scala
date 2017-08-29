@@ -71,14 +71,24 @@ object Main extends App {
 
     val insertPeople = Future {
       val query = peopleTable ++= Seq(
-        (10, "Jack", "Wood", 36),
-        (20, "Tim", "Brown", 24),
-        (20, "bob", "Brown", 23),
-        (20, "jef", "failed", 65),
-        (20, "Tim", "the", 27),
-        (20, "Tim", "Brown", 4),
-        (20, "Tim", "the", 54),
-        (20, "Tim", "Brown", 13)
+        (10, "Jack", "Wood", 36, 164, "Croxley View", "Watford", "WD18", "UK"),
+        (10, "Averill", "Garrard", 36, 153, "Corcyra St", "Watford", "WD17", "UK"),
+        (10, "Tony", "Bone", 36, 7, "Unnamed Road", "Watford", "WD12", "UK"),
+
+        (20, "Tim", "Brown", 24, 54, "Bro Llewelyn", "Menai Bridge", "LL59 5UP", "UK"),
+
+        (20, "bob", "Brown", 23, 1, "The Farleys", "Malvern", "WR13 5ET", "UK"),
+
+        (20, "jef", "failed", 65, 9, "Mill Ln", "Leyland", "PR26 6PS", "UK"),
+
+        (20, "Tim", "the", 27, 183, "Broughton Rd", "Glasgow", "G23 5BP", "UK"),
+        (20, "Collin", "Ryers", 27, 126, "Broughton Rd", "Glasgow", "G23 5BP", "UK"),
+
+        (20, "Tim", "Brown", 4, 53, "King St", "Nairn", "IV12 4NP", "UK"),
+
+        (20, "Tim", "the", 54, 6, "Providence Pl", "Calstock", "PL18 9RW", "UK"),
+
+        (20, "Tim", "Brown", 13, 5, "Orchard Place", "Nottingham", "NG8 6PX", "UK")
       )
       // insert into `PEOPLE` (`PER_FNAME`,`PER_LNAME`,`PER_AGE`)  values (?,?,?)
       println(query.statements.head) // would print out the query one line up
@@ -96,11 +106,11 @@ object Main extends App {
 
     val queryFuture = Future {
 
-        val q = peopleTable
-        val updateAction = q.result
-        val sql = updateAction.statements.head
-        println(sql)
-        db.run(updateAction)
+      val q = peopleTable
+      val updateAction = q.result
+      val sql = updateAction.statements.head
+      println(sql)
+      db.run(updateAction)
 
     }
 
@@ -122,7 +132,7 @@ object Main extends App {
       db.run(updateAction)
     }
     Await.result(queryFuture, Duration.Inf).andThen {
-      case Success(result) => println(result); delete_people //cleanup DB connection
+      case Success(result) => println(result); delete_people
       case Failure(error) =>
         println("Listing people failed due to: " + error.getMessage)
     }
@@ -141,7 +151,7 @@ object Main extends App {
       db.run(updateAction)
     }
     Await.result(queryFuture, Duration.Inf).andThen {
-      case Success(result) => println(result); Search_people //cleanup DB connection
+      case Success(result) => println(result); Search_people
       case Failure(error) =>
         println("Listing people failed due to: " + error.getMessage)
     }
@@ -161,7 +171,7 @@ object Main extends App {
       db.run(updateAction)
     }
     Await.result(queryFuture, Duration.Inf).andThen {
-      case Success(result) => println(result); num_of_people //cleanup DB connection
+      case Success(result) => println(result); num_of_people
       case Failure(error) =>
         println("Listing people failed due to: " + error.getMessage)
     }
@@ -178,11 +188,12 @@ object Main extends App {
       db.run(updateAction)
     }
     Await.result(queryFuture, Duration.Inf).andThen {
-      case Success(result) => println(result); average_age_people //cleanup DB connection
+      case Success(result) => println(result); average_age_people
       case Failure(error) =>
         println("Listing people failed due to: " + error.getMessage)
     }
   }
+
   def average_age_people = {
     println("\n num_of_people \n")
     val queryFuture = Future {
@@ -194,7 +205,7 @@ object Main extends App {
       db.run(updateAction)
     }
     Await.result(queryFuture, Duration.Inf).andThen {
-      case Success(result) => println(result); most_common_fName_people //cleanup DB connection
+      case Success(result) => println(result); most_common_fName_people
       case Failure(error) =>
         println("Listing people failed due to: " + error.getMessage)
     }
@@ -204,9 +215,11 @@ object Main extends App {
   def most_common_fName_people = {
     println("\n most_common_fName_people \n")
     val queryFuture = Future {
-      val q = peopleTable.groupBy { _.fName }
+      val q = peopleTable.groupBy {
+        _.fName
+      }
         .map { case (name, group) =>
-          (name , group.length)
+          (name, group.length)
         }.sortBy(_._2.desc)
 
 
@@ -217,7 +230,7 @@ object Main extends App {
       db.run(updateAction)
     }
     Await.result(queryFuture, Duration.Inf).andThen {
-      case Success(result) => println(result); most_common_lName_people //cleanup DB connection
+      case Success(result) => println(result); most_common_lName_people
       case Failure(error) =>
         println("Listing people failed due to: " + error.getMessage)
     }
@@ -226,13 +239,58 @@ object Main extends App {
   def most_common_lName_people = {
     println("\n most_common_lName_people \n")
     val queryFuture = Future {
-      val q = peopleTable.groupBy { _.lName }
+      val q = peopleTable.groupBy {
+        _.lName
+      }
         .map { case (name, group) =>
-          (name , group.length)
+          (name, group.length)
         }.sortBy(_._2.desc)
 
 
-      val updateAction = q.result//.head
+      val updateAction = q.result.head
+      val sql = updateAction.statements.head
+
+      println(sql)
+      db.run(updateAction)
+    }
+    Await.result(queryFuture, Duration.Inf).andThen {
+      case Success(result) => println(result); most_common_city_people
+      case Failure(error) =>
+        println("Listing people failed due to: " + error.getMessage)
+    }
+  }
+
+  def most_common_city_people = {
+    println("\n most_common_city_people \n")
+    val queryFuture = Future {
+      val q = peopleTable.groupBy {
+        _.City
+      }.map { case (city, group) => (city, group.length) }.sortBy(_._2.desc)
+
+
+      val updateAction = q.result.head
+      val sql = updateAction.statements.head
+
+      println(sql)
+      db.run(updateAction)
+    }
+    Await.result(queryFuture, Duration.Inf).andThen {
+      case Success(result) => println(result); neighbours_people
+      case Failure(error) =>
+        println("Listing people failed due to: " + error.getMessage)
+    }
+  }
+
+  def neighbours_people = {
+    println("\n neighbours_people \n")
+    val queryFuture = Future {
+      val q = peopleTable.groupBy {
+        _.Address2
+      }.map { case (address2, group)  => (address2, group.length) }.filter(_._2>1)
+
+
+
+      val updateAction = q.result
       val sql = updateAction.statements.head
 
       println(sql)
@@ -244,8 +302,6 @@ object Main extends App {
         println("Listing people failed due to: " + error.getMessage)
     }
   }
-
-
 
 
 }
